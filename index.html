@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SAF HA Tracker</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        :root {
+            --primary: #006341;
+            --secondary: #d4af37;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --danger: #dc3545;
+            --success: #28a745;
+            --warning: #ffc107;
+            --info: #17a2b8;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 5px solid var(--secondary);
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .status-current {
+            background-color: var(--success);
+        }
+        
+        .status-lapsed {
+            background-color: var(--danger);
+        }
+        
+        .status-in-progress {
+            background-color: var(--warning);
+        }
+        
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .card-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .card-body {
+            padding: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+        }
+        
+        .btn-success {
+            background-color: var(--success);
+            color: white;
+        }
+        
+        .btn-warning {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 3px 7px;
+            font-size: 12px;
+            font-weight: bold;
+            line-height: 1;
+            color: white;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            border-radius: 10px;
+        }
+        
+        .badge-primary {
+            background-color: var(--primary);
+        }
+        
+        .badge-success {
+            background-color: var(--success);
+        }
+        
+        .badge-danger {
+            background-color: var(--danger);
+        }
+        
+        .badge-warning {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+        
+        .badge-info {
+            background-color: var(--info);
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+        }
+        
+        .tab.active {
+            background-color: white;
+            border-color: #ddd;
+            border-bottom: 1px solid white;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+        }
+        
+        .calendar-header {
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            background-color: #f2f2f2;
+        }
+        
+        .calendar-day {
+            border: 1px solid #ddd;
+            padding: 10px;
+            min-height: 80px;
+            background-color: white;
+        }
+        
+        .calendar-day.today {
+            background-color: #e6f7ff;
+            border: 1px solid var(--info);
+        }
+        
+        .calendar-day.ha-active {
+            background-color: #e6ffe6;
+            border: 1px solid var(--success);
+        }
+        
+        .calendar-day.ha-missed {
+            background-color: #ffe6e6;
+            border: 1px solid var(--danger);
+        }
+        
+        .calendar-day.break-day {
+            background-color: #fff9e6;
+            border: 1px solid var(--warning);
+        }
+        
+        .ha-activity {
+            font-size: 12px;
+            margin: 2px 0;
+            padding: 2px 5px;
+            background-color: var(--success);
+            color: white;
+            border-radius: 3px;
+        }
+        
+        .ha-missed {
+            background-color: var(--danger);
+        }
+        
+        .ha-break {
+            background-color: var(--warning);
+            color: var(--dark);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>SAF Heat Acclimatization Tracker</h1>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="tabs">
+            <div class="tab active" data-tab="soldiers">Soldiers</div>
+            <div class="tab" data-tab="ha-programs">HA Programs</div>
+            <div class="tab" data-tab="calendar">Calendar View</div>
+        </div>
+        
+        <div class="tab-content active" id="soldiers">
+            <div class="card">
+                <div class="card-header">
+                    Soldier Management
+                    <button class="btn btn-primary" id="addSoldierBtn">Add Soldier</button>
+                </div>
+                <div class="card-body">
+                    <table id="soldiersTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Rank</th>
+                                <th>Unit</th>
+                                <th>HA Status</th>
+                                <th>Current Program</th>
+                                <th>Last HA</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="soldiersTableBody">
+                            <!-- Soldiers will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="ha-programs">
+            <div class="card">
+                <div class="card-header">
+                    HA Program Management
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="programSoldierSelect">Select Soldier:</label>
+                        <select id="programSoldierSelect" class="form-control">
+                            <option value="">-- Select Soldier --</option>
+                        </select>
+                    </div>
+                    
+                    <div id="programInfo" style="display: none;">
+                        <h3>Current HA Program Status</h3>
+                        <div id="programDetails"></div>
+                        
+                        <div class="form-group">
+                            <label>Record HA Activity:</label>
+                            <div>
+                                <button class="btn btn-success" id="recordActivityBtn">Completed Activity</button>
+                                <button class="btn btn-warning" id="recordBreakBtn">Record Break Day</button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Change Program:</label>
+                            <div>
+                                <button class="btn btn-primary" id="startSingleBtn">Start Single HA</button>
+                                <button class="btn btn-primary" id="startExpandedBtn">Start Expanded HA</button>
+                                <button class="btn btn-primary" id="startDoubleBtn">Start Double HA</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="tab-content" id="calendar">
+            <div class="card">
+                <div class="card-header">
+                    HA Calendar View
+                </div>
+                <div class="card-body">
+                    <div class="form-group">
+                        <label for="calendarSoldierSelect">Select Soldier:</label>
+                        <select id="calendarSoldierSelect" class="form-control">
+                            <option value="">-- Select Soldier --</option>
+                        </select>
+                    </div>
+                    
+                    <div id="calendarContainer" style="display: none;">
+                        <h3 id="calendarSoldierName"></h3>
+                        <div class="calendar" id="haCalendar">
+                            <!-- Calendar will be generated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit Soldier Modal -->
+    <div id="soldierModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 id="modalTitle">Add New Soldier</h2>
+            <form id="soldierForm">
+                <input type="hidden" id="soldierId">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="rank">Rank:</label>
+                    <select id="rank" required>
+                        <option value="">-- Select Rank --</option>
+                        <option value="REC">REC</option>
+                        <option value="PTE">PTE</option>
+                        <option value="LCP">LCP</option>
+                        <option value="CPL">CPL</option>
+                        <option value="CFC">CFC</option>
+                        <option value="3SG">3SG</option>
+                        <option value="2SG">2SG</option>
+                        <option value="1SG">1SG</option>
+                        <option value="MSG">MSG</option>
+                        <option value="SSG">SSG</option>
+                        <option value="OCT">OCT</option>
+                        <option value="2LT">2LT</option>
+                        <option value="LTA">LTA</option>
+                        <option value="CPT">CPT</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="unit">Unit:</label>
+                    <input type="text" id="unit" required>
+                </div>
+                <div class="form-group">
+                    <label for="nric">NRIC/FIN:</label>
+                    <input type="text" id="nric" required>
+                </div>
+                <div class="form-group">
+                    <label for="status">Initial HA Status:</label>
+                    <select id="status" required>
+                        <option value="current">Current</option>
+                        <option value="lapsed">Lapsed</option>
+                        <option value="in-progress">In Progress</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
