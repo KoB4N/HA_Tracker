@@ -62,12 +62,23 @@
           <td>${s.id}</td>
           <td>${s.program}</td>
           <td>${s.progress}/${getTotalPeriods(s.program)}</td>
-          <td><button onclick="markComplete(${index})">&#10003;</button></td>
-          <td><button onclick="removeSoldier(${index})">Remove</button></td>
+          <td><button class="complete-btn" data-index="${index}">&#10003;</button></td>
+          <td><button class="remove-btn" data-index="${index}">Remove</button></td>
         `;
         table.appendChild(row);
       });
     }
+
+    table.addEventListener('click', function (e) {
+      if (e.target.classList.contains('complete-btn')) {
+        const index = parseInt(e.target.getAttribute('data-index'));
+        markComplete(index);
+      }
+      if (e.target.classList.contains('remove-btn')) {
+        const index = parseInt(e.target.getAttribute('data-index'));
+        removeSoldier(index);
+      }
+    });
 
     function getTotalPeriods(program) {
       switch(program) {
