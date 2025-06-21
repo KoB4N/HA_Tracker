@@ -1,6 +1,5 @@
-// Configuration - Replace with your Google Apps Script deployment URL
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyBat65tE7Qjd4JR-nmOPgmLAiNssUfVKyfUoZazBU/exec';
-//AKfycbyBat65tE7Qjd4JR-nmOPgmLAiNssUfVKyfUoZazBU
+// Configuration - Replace with your deployed Google Apps Script Web App URL
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw361UObmWgAKrtLCrZrJv3QRGrYfntt3Dcv-3p7CIJFuvnbACBEtugo1WZK6aU9NzG/exec';
 
 // Global variables
 let soldiers = [];
@@ -25,6 +24,21 @@ const startDoubleBtn = document.getElementById('startDoubleBtn');
 const calendarContainer = document.getElementById('calendarContainer');
 const haCalendar = document.getElementById('haCalendar');
 const calendarSoldierName = document.getElementById('calendarSoldierName');
+
+// Add axios response interceptor for error handling
+axios.interceptors.response.use(
+  response => {
+    if (response.data && response.data.error) {
+      return Promise.reject(new Error(response.data.error));
+    }
+    return response;
+  },
+  error => {
+    console.error('API Error:', error);
+    alert('Failed to communicate with server. Please check your connection and try again.');
+    return Promise.reject(error);
+  }
+);
 
 // Tab functionality
 const tabs = document.querySelectorAll('.tab');
@@ -83,11 +97,13 @@ soldierForm.addEventListener('submit', (e) => {
         rank: document.getElementById('rank').value,
         unit: document.getElementById('unit').value,
         nric: document.getElementById('nric').value,
-        status: document.getElementById('status').value
+        status: document.getElementById('status').value,
+        action: soldierId ? 'updateSoldier' : 'addSoldier'
     };
     
     if (soldierId) {
-        updateSoldier(soldierId, soldierData);
+        soldierData.soldierId = soldierId;
+        updateSoldier(soldierData);
     } else {
         addSoldier(soldierData);
     }
@@ -164,7 +180,7 @@ function loadSoldiers() {
         })
         .catch(error => {
             console.error('Error loading soldiers:', error);
-            alert('Failed to load soldiers. Please try again.');
+            alert(error.message || 'Failed to load soldiers. Please try again.');
         });
 }
 
@@ -215,33 +231,26 @@ function loadCalendarData(soldierId) {
 }
 
 function addSoldier(soldierData) {
-    axios.post(SCRIPT_URL, {
-        action: 'addSoldier',
-        ...soldierData
-    })
+    axios.post(SCRIPT_URL, soldierData)
     .then(response => {
         soldierModal.style.display = 'none';
         loadSoldiers();
     })
     .catch(error => {
         console.error('Error adding soldier:', error);
-        alert('Failed to add soldier. Please try again.');
+        alert(error.message || 'Failed to add soldier. Please try again.');
     });
 }
 
-function updateSoldier(soldierId, soldierData) {
-    axios.post(SCRIPT_URL, {
-        action: 'updateSoldier',
-        soldierId: soldierId,
-        ...soldierData
-    })
+function updateSoldier(soldierData) {
+    axios.post(SCRIPT_URL, soldierData)
     .then(response => {
         soldierModal.style.display = 'none';
         loadSoldiers();
     })
     .catch(error => {
         console.error('Error updating soldier:', error);
-        alert('Failed to update soldier. Please try again.');
+        alert(error.message || 'Failed to update soldier. Please try again.');
     });
 }
 
@@ -256,7 +265,7 @@ function deleteSoldier(soldierId) {
         })
         .catch(error => {
             console.error('Error deleting soldier:', error);
-            alert('Failed to delete soldier. Please try again.');
+            alert(error.message || 'Failed to delete soldier. Please try again.');
         });
     }
 }
@@ -272,7 +281,7 @@ function recordHAActivity(soldierId) {
     })
     .catch(error => {
         console.error('Error recording activity:', error);
-        alert('Failed to record activity. Please try again.');
+        alert(error.message || 'Failed to record activity. Please try again.');
     });
 }
 
@@ -287,7 +296,7 @@ function recordHABreak(soldierId) {
     })
     .catch(error => {
         console.error('Error recording break:', error);
-        alert('Failed to record break. Please try again.');
+        alert(error.message || 'Failed to record break. Please try again.');
     });
 }
 
@@ -303,11 +312,11 @@ function startNewProgram(soldierId, programType) {
     })
     .catch(error => {
         console.error('Error starting new program:', error);
-        alert('Failed to start new program. Please try again.');
+        alert(error.message || 'Failed to start new program. Please try again.');
     });
 }
 
-// Rendering functions
+// Rendering functions (remain the same as before)
 function renderSoldiersTable() {
     soldiersTableBody.innerHTML = '';
     
